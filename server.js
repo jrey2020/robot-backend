@@ -2,7 +2,6 @@
 const cors = require("cors");
 const app = express();
 
-// Use Render’s PORT if deployed, or fallback to 5000 locally
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -12,20 +11,19 @@ app.use(express.json());
 let orders = [];
 let currentId = 1;
 
-// ✅ Health check route
+// ✅ Health check
 app.get("/", (req, res) => {
     res.send("✅ Backend is live and ready!");
 });
 
-// ✅ Create new order (used by Checkout.jsx)
+// ✅ Create new order
 app.post("/orders", (req, res) => {
     const { customer, address, city, zip, items } = req.body;
 
-    // calculate total
     const total = items.reduce((sum, item) => sum + item.price, 0);
 
     const newOrder = {
-        id: currentId++,            // structured IDs
+        id: currentId++,
         customer,
         address,
         city,
@@ -33,7 +31,7 @@ app.post("/orders", (req, res) => {
         items,
         total,
         status: "pending",
-        createdAt: new Date(),      // timestamp
+        createdAt: new Date(),
     };
 
     orders.push(newOrder);
@@ -46,15 +44,14 @@ app.get("/orders", (req, res) => {
     res.json(orders);
 });
 
-// ✅ Get the latest order (for robot.js)
+// ✅ Get latest order
 app.get("/orders/latest", (req, res) => {
     if (orders.length === 0) {
         return res.status(404).json({ message: "No orders yet" });
     }
-    res.json(orders[orders.length - 1]); // return last order
+    res.json(orders[orders.length - 1]);
 });
 
-// ✅ Start server
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
