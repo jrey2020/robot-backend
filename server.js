@@ -2,6 +2,8 @@
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const server = http.createServer(app);
@@ -15,6 +17,24 @@ app.use(cors());
 app.use(express.json());
 
 let orders = [];
+
+// ✅ Stripe PaymentIntent
+app.post("/create-payment-intent", async (req, res) => {
+    try {
+        const { amount } = req.body;
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount,
+            currency: "usd",
+            automatic_payment_methods: { enabled: true },
+        });
+
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+        console.error("❌ Stripe error:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 io.on("connection", (socket) => {
     console.log("🤖 Robot connected:", socket.id);
